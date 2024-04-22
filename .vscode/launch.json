@@ -1,0 +1,40 @@
+{
+    // 使用 IntelliSense 以得知可用的屬性。
+    // 暫留以檢視現有屬性的描述。
+    // 如需詳細資訊，請瀏覽: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "train_from_recipe",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "src/super_gradients/train_from_recipe.py",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "args": [
+                "--config-name","cwz_headnobg_receipe"
+            ]
+        },
+        {
+            "name": "train_cwz_headnobg_receipe",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "train_cwz_headnobg_receipe.py",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "args": []
+        },
+        {
+            "name": "convert_recipe_to_code",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "src/super_gradients/convert_recipe_to_code.py",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "args": [
+                "cwz_headnobg_receipe",
+                "train_cwz_headnobg_receipe.py"
+            ]
+        }
+    ]
+}

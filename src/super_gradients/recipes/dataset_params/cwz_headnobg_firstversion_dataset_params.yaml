@@ -1,0 +1,82 @@
+# cwz_headnobg_firstversion_dataset_params.yaml
+root_dir: /home/cwz/Lenovo/HeadBody
+
+train_dataset_params:
+  dataset_filenames_txts: 
+    - ${dataset_params.root_dir}/train_nobg.txt
+  input_dim: [640, 640]
+  cache_annotations: True
+  ignore_empty_annotations: False
+  transforms:
+    - DetectionMosaic:
+        input_dim: ${dataset_params.train_dataset_params.input_dim}
+        prob: 1.
+    - DetectionRandomAffine:
+        degrees: 0.                  # rotation degrees, randomly sampled from [-degrees, degrees]
+        translate: 0.1                # image translation fraction
+        scales: [ 0.5, 1.5 ]              # random rescale range (keeps size by padding/cropping) after mosaic transform.
+        shear: 0.0                    # shear degrees, randomly sampled from [-degrees, degrees]
+        target_size: ${dataset_params.train_dataset_params.input_dim}
+        filter_box_candidates: False  # whether to filter out transformed bboxes by edge size, area ratio, and aspect ratio.
+        wh_thr: 2                     # edge size threshold when filter_box_candidates = True (pixels)
+        area_thr: 0.1                 # threshold for area ratio between original image and the transformed one, when filter_box_candidates = True
+        ar_thr: 20                    # aspect ratio threshold when filter_box_candidates = True
+        border_value: 128
+# #    - DetectionMixup:
+# #        input_dim: ${dataset_params.train_dataset_params.input_dim}
+# #        mixup_scale: [ 0.5, 1.5 ]         # random rescale range for the additional sample in mixup
+# #        prob: 1.0                       # probability to apply per-sample mixup
+# #        flip_prob: 0.5                  # probability to apply horizontal flip
+    - DetectionHSV:
+        prob: 1.0                       # probability to apply HSV transform
+        hgain: 5                        # HSV transform hue gain (randomly sampled from [-hgain, hgain])
+        sgain: 30                       # HSV transform saturation gain (randomly sampled from [-sgain, sgain])
+        vgain: 30                       # HSV transform value gain (randomly sampled from [-vgain, vgain])
+    - DetectionHorizontalFlip:
+        prob: 0.5                       # probability to apply horizontal flip
+    - DetectionPaddedRescale:
+        input_dim: ${dataset_params.train_dataset_params.input_dim}
+        pad_value: 114
+    - DetectionStandardize:
+        max_value: 255.
+    - DetectionTargetsFormatTransform:
+        output_format: LABEL_CXCYWH
+
+train_dataloader_params:
+  dataset: CWZCustomDetectionDataset
+  batch_size: 32
+  num_workers: 8
+  drop_last: True
+  shuffle: True
+  pin_memory: True
+  # worker_init_fn:
+  #   _target_: super_gradients.training.utils.utils.load_func
+  #   dotpath: super_gradients.training.datasets.datasets_utils.worker_init_reset_seed
+  collate_fn: DetectionCollateFN
+
+val_dataset_params:
+  dataset_filenames_txts:
+    - ${dataset_params.root_dir}/val.txt
+  input_dim: [636, 636]
+  cache_annotations: True
+  ignore_empty_annotations: False
+  transforms:
+    - DetectionPadToSize:
+        output_size: [640, 640]
+        pad_value: 114
+    - DetectionStandardize:
+        max_value: 255.
+    - DetectionTargetsFormatTransform:
+        input_dim: [640, 640]
+        output_format: LABEL_CXCYWH
+
+val_dataloader_params:
+  dataset: CWZCustomDetectionDataset
+  batch_size: 32
+  num_workers: 8
+  drop_last: False
+  pin_memory: True
+  # worker_init_fn:
+  #   _target_: super_gradients.training.utils.utils.load_func
+  #   dotpath: super_gradients.training.datasets.datasets_utils.worker_init_reset_seed
+  collate_fn: DetectionCollateFN

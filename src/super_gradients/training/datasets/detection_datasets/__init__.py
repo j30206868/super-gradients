@@ -3,5 +3,6 @@ from super_gradients.training.datasets.detection_datasets.pascal_voc_detection i
 from super_gradients.training.datasets.detection_datasets.detection_dataset import DetectionDataset
 from super_gradients.training.datasets.detection_datasets.roboflow import RoboflowDetectionDataset
 from super_gradients.training.datasets.detection_datasets.yolo_format_detection import YoloDarknetFormatDetectionDataset
+from super_gradients.training.datasets.detection_datasets.cwz_detection import CWZCustomDetectionDataset
 
-__all__ = ["COCODetectionDataset", "DetectionDataset", "PascalVOCDetectionDataset", "RoboflowDetectionDataset", "YoloDarknetFormatDetectionDataset"]
+__all__ = ["CWZCustomDetectionDataset", "COCODetectionDataset", "DetectionDataset", "PascalVOCDetectionDataset", "RoboflowDetectionDataset", "YoloDarknetFormatDetectionDataset"]

@@ -1,0 +1,38 @@
+# YoloNAS-S Detection training on COCO2017 Dataset:
+# This training recipe is for demonstration purposes only. Pretrained models were trained using a different recipe.
+# So it will not be possible to reproduce the results of the pretrained models using this recipe.
+
+# Instructions:
+#   0. Make sure that the data is stored in dataset_params.dataset_dir or add "dataset_params.data_dir=<PATH-TO-DATASET>" at the end of the command below (feel free to check ReadMe)
+#   1. Move to the project root (where you will find the ReadMe and src folder)
+#   2. Run the command you want:
+#         yolo_nas_s: python src/super_gradients/examples/train_from_recipe_example/train_from_recipe.py --config-name=coco2017_yolo_nas_s
+#
+
+# yolo_nas_cwznx0.5_arch_params
+# yolo_nas_s_arch_params
+
+defaults:
+  - training_hyperparams: cwz_yolo_nas_train_params 
+  - dataset_params: cwz_headnobg_firstversion_dataset_params
+  - arch_params: yolo_nas_cwznx0.5_arch_params
+  - checkpoint_params: default_checkpoint_params
+  - _self_
+  - variable_setup
+
+train_dataloader: 
+val_dataloader: 
+
+load_checkpoint: False
+resume: False
+
+arch_params:
+  num_classes: 2
+
+architecture: yolo_nas_s
+
+multi_gpu: Off
+num_gpus: 1
+
+experiment_suffix: ""
+experiment_name: cwz_headnobg_${architecture}${experiment_suffix}

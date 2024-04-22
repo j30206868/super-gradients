@@ -423,6 +423,7 @@ class Datasets:
     CIFAR_10 = "Cifar10"
     CIFAR_100 = "Cifar100"
     IMAGENET_DATASET = "ImageNetDataset"
+    CWZCustomDetectionDataset = "CWZCustomDetectionDataset"
     COCO_DETECTION_DATASET = "COCODetectionDataset"
     DETECTION_DATASET = "DetectionDataset"
     PASCAL_VOC_DETECTION_DATASET = "PascalVOCDetectionDataset"

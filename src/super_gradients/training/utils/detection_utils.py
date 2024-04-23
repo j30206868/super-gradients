@@ -523,7 +523,11 @@ class DetectionVisualization:
                 image_with_targets = np.zeros_like(image_np, np.uint8)
             else:
                 image_with_targets = image_np
-
+                
+            # If the target boxes are in the format (image_id, class, cx, cy, w, h)
+            # change it to label_xyxy
+            target_boxes = target_boxes[:,1:] if target_boxes.shape[-1] == 6 else target_boxes
+                
             for label_xyxy in target_boxes:
                 image_with_targets = DetectionVisualization.draw_box_title(
                     color_mapping=color_mapping,

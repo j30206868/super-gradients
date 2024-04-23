@@ -17,6 +17,13 @@ MY_CLASSES = ['head', 'body']  # Define your classes
 
 @register_dataset(Datasets.CWZCustomDetectionDataset)
 class CWZCustomDetectionDataset(DetectionDataset):
+    @staticmethod
+    def img2labelfilepath(image_file_path: str) -> str:
+        image_dir, image_filename = os.path.split(image_file_path)
+        label_dir = image_dir.rsplit("images", 1)[0] + "labels" + image_dir.rsplit("images", 1)[1]
+        label_file_path = os.path.join(label_dir, os.path.splitext(image_filename)[0] + '.txt')
+        return label_file_path
+    
     def __init__(self, dataset_filenames_txts: List[str], input_dim: Tuple[int, int],
                  transforms: List[DetectionTransform], max_num_samples: int = None,
                  class_inclusion_list: Optional[List[str]] = None, force_update_cache_file: Optional[bool] = False, **kwargs):
@@ -54,11 +61,9 @@ class CWZCustomDetectionDataset(DetectionDataset):
                     image_file_path = os.path.join(base_dir, line.strip())
                     _, ext = os.path.splitext(image_file_path)
                     if ext.lower() not in ['.jpeg', '.jpg', '.png']:
+                        print(f"Skipping unsupported file format: {image_file_path} ({ext})")
                         continue  # Skip unsupported file formats
-
-                    image_dir, image_filename = os.path.split(image_file_path)
-                    label_dir = image_dir.replace("images", "labels")
-                    label_file_path = os.path.join(label_dir, os.path.splitext(image_filename)[0] + '.txt')
+                    label_file_path = CWZCustomDetectionDataset.img2labelfilepath(image_file_path)
 
                     if os.path.exists(image_file_path) and os.path.exists(label_file_path):
                         self.samples_targets_tuples_list.append((image_file_path, label_file_path))

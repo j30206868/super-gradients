@@ -1,6 +1,10 @@
 defaults:
   - default_train_params
 
+resume: True
+run_id: RUN_20240423_001138_022291 # ID to resume from a specific run within the same experiment.
+resume_path: ./checkpoints/cwz_headnobg_yolo_nas_s/RUN_20240423_001138_022291/ckpt_latest.pth # Direct path to a specific checkpoint file (.pth) to resume training.
+
 max_epochs: 300
 
 warmup_mode: LinearBatchLRWarmup

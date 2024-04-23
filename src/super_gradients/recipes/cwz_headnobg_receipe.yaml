@@ -24,7 +24,9 @@ train_dataloader:
 val_dataloader: 
 
 load_checkpoint: False
-resume: False
+# resume: True
+# run_id: RUN_20240423_001138_022291 # ID to resume from a specific run within the same experiment.
+# resume_path: ./checkpoints/cwz_headnobg_yolo_nas_s/RUN_20240423_001138_022291/ckpt_latest.pth # Direct path to a specific checkpoint file (.pth) to resume training.
 
 arch_params:
   num_classes: 2

@@ -1,12 +1,16 @@
 import os
-from typing import List, Tuple, Dict, Union, Any, Optional
 import numpy as np
 import cv2
+from tqdm import tqdm
+from typing import List, Tuple, Dict, Union, Any, Optional
+
 from super_gradients.common.registry.registry import register_dataset
+from super_gradients.common.object_names import Datasets
+from super_gradients.common.cache_handler.cache_manager import CacheManager
+
 from super_gradients.training.datasets.detection_datasets.detection_dataset import DetectionDataset
 from super_gradients.training.transforms.transforms import DetectionTransform
 from super_gradients.training.utils.detection_utils import DetectionTargetsFormat
-from super_gradients.common.object_names import Datasets
 from super_gradients.training.utils.detection_utils import change_bbox_bounds_for_image_size
 
 MY_CLASSES = ['head', 'body']  # Define your classes
@@ -15,9 +19,10 @@ MY_CLASSES = ['head', 'body']  # Define your classes
 class CWZCustomDetectionDataset(DetectionDataset):
     def __init__(self, dataset_filenames_txts: List[str], input_dim: Tuple[int, int],
                  transforms: List[DetectionTransform], max_num_samples: int = None,
-                 class_inclusion_list: Optional[List[str]] = None, **kwargs):
+                 class_inclusion_list: Optional[List[str]] = None, force_update_cache_file: Optional[bool] = False, **kwargs):
         self.dataset_filenames_txts = dataset_filenames_txts
         self.image_shapes = {}  # Dictionary to store image dimensions
+        self.force_update_cache_file = force_update_cache_file
         super().__init__(data_dir="", input_dim=input_dim,
                          original_target_format=DetectionTargetsFormat.XYXY_LABEL,
                          max_num_samples=max_num_samples,
@@ -26,23 +31,44 @@ class CWZCustomDetectionDataset(DetectionDataset):
         
 
     def _setup_data_source(self) -> int:
+        print("CWZCustomDetectionDataset: Setting up data source")
         self.samples_targets_tuples_list = []
         for dataset_filename_txt in self.dataset_filenames_txts:
-            base_dir = os.path.dirname(dataset_filename_txt)
-            with open(dataset_filename_txt, 'r') as file:
-                lines = file.read().splitlines()
-            for line in lines:
-                image_file_path = os.path.join(base_dir, line.strip())
-                _, ext = os.path.splitext(image_file_path)
-                if ext.lower() not in ['.jpeg', '.jpg', '.png']:
-                    continue  # Skip unsupported file formats
+            print(f"setup data source for {dataset_filename_txt}")
+            cacheobj = CacheManager.get_cache_obj(dataset_filename_txt)
+            cache_data = {}
+            if self.force_update_cache_file:
+                cacheobj.remove_cache()
+            else:
+                cache_data = cacheobj.load_cache_data()
 
-                image_dir, image_filename = os.path.split(image_file_path)
-                label_dir = image_dir.replace("images", "labels")
-                label_file_path = os.path.join(label_dir, os.path.splitext(image_filename)[0] + '.txt')
+            if cache_data:
+                self.samples_targets_tuples_list.extend(cache_data.get('samples_targets', []))
+                self.image_shapes.update(cache_data.get('image_shapes', {}))
+            else:
+                base_dir = os.path.dirname(dataset_filename_txt)
+                with open(dataset_filename_txt, 'r') as file:
+                    lines = file.read().splitlines()
+                new_cache_data = {'samples_targets': [], 'image_shapes': {}}
+                for line in tqdm(lines, desc="Processing Labels", unit="line"):
+                    image_file_path = os.path.join(base_dir, line.strip())
+                    _, ext = os.path.splitext(image_file_path)
+                    if ext.lower() not in ['.jpeg', '.jpg', '.png']:
+                        continue  # Skip unsupported file formats
 
-                if os.path.exists(image_file_path) and os.path.exists(label_file_path):
-                    self.samples_targets_tuples_list.append((image_file_path, label_file_path))
+                    image_dir, image_filename = os.path.split(image_file_path)
+                    label_dir = image_dir.replace("images", "labels")
+                    label_file_path = os.path.join(label_dir, os.path.splitext(image_filename)[0] + '.txt')
+
+                    if os.path.exists(image_file_path) and os.path.exists(label_file_path):
+                        self.samples_targets_tuples_list.append((image_file_path, label_file_path))
+                        img = cv2.imread(image_file_path)
+                        if img is not None:
+                            new_cache_data['image_shapes'][len(new_cache_data['samples_targets'])] = img.shape[:2]
+                        new_cache_data['samples_targets'].append((image_file_path, label_file_path))
+                print(f"Cache {dataset_filename_txt} related file labels to {cacheobj.get_cache_path()}")
+                cacheobj.save_cache_data(new_cache_data)
+
         return len(self.samples_targets_tuples_list)
 
     def _load_annotation(self, sample_id: int) -> Dict[str, Union[np.ndarray, Any]]:
@@ -60,10 +86,6 @@ class CWZCustomDetectionDataset(DetectionDataset):
         if len(target) != 0:
             # target_height, target_width = self.input_dim
             res_target = np.zeros_like(target)
-            # res_target[:, 0] = target[:, 1] * img_width - target[:, 3] * img_width / 2  # X1
-            # res_target[:, 1] = target[:, 2] * img_height - target[:, 4] * img_height / 2  # Y1
-            # res_target[:, 2] = target[:, 1] * img_width + target[:, 3] * img_width / 2  # X2
-            # res_target[:, 3] = target[:, 2] * img_height + target[:, 4] * img_height / 2  # Y2
             res_target[:, 0] = target[:, 1] * img_width - target[:, 3] * img_width / 2  # X1
             res_target[:, 1] = target[:, 2] * img_height - target[:, 4] * img_height / 2  # Y1
             res_target[:, 2] = target[:, 1] * img_width + target[:, 3] * img_width / 2  # X2

@@ -8,33 +8,24 @@
             "name": "train_from_recipe",
             "type": "debugpy",
             "request": "launch",
-            "program": "src/super_gradients/train_from_recipe.py",
+            "module": "super_gradients.train_from_recipe",
             "console": "integratedTerminal",
             "justMyCode": false,
-            "args": [
-                "--config-name","cwz_headnobg_receipe"
-            ]
-        },
-        {
-            "name": "train_cwz_headnobg_receipe",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "train_cwz_headnobg_receipe.py",
-            "console": "integratedTerminal",
-            "justMyCode": false,
-            "args": []
+            "args": ["--config-name","cwz_headnobg_receipe"],
+            "cwd": "${workspaceFolder}/src"
         },
         {
             "name": "convert_recipe_to_code",
             "type": "debugpy",
             "request": "launch",
-            "program": "src/super_gradients/convert_recipe_to_code.py",
+            "module": "super_gradients.convert_recipe_to_code",
             "console": "integratedTerminal",
             "justMyCode": false,
             "args": [
                 "cwz_headnobg_receipe",
                 "train_cwz_headnobg_receipe.py"
-            ]
+            ],
+            "cwd": "${workspaceFolder}/src"
         }
     ]
 }
